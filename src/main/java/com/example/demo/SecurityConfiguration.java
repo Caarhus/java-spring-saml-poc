@@ -47,9 +47,12 @@ public class SecurityConfiguration {
             Saml2AuthenticatedPrincipal principal = (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
             List<String> groups = principal.getAttribute("groups");
             Set<GrantedAuthority> authorities = new HashSet<>();
+
             if (groups != null) {
                 groups.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
             } else {
+                // if groups is not preset, try Auth0 attribute name
+                groups = principal.getAttribute("http://schemas.auth0.com/roles");
                 authorities.addAll(authentication.getAuthorities());
             }
             return new Saml2Authentication(principal, authentication.getSaml2Response(), authorities);
