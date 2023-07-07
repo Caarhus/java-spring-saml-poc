@@ -22,6 +22,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfiguration {
 
+    private Saml2AuthenticatedPrincipal principal = null;
+	private List<String> groups = null;
+	private Set<GrantedAuthority> authorities = new HashSet<>();
+
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
@@ -37,25 +41,72 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> groupsConverter() {
+    // private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> groupsConverter() {
 
+    //     Converter<ResponseToken, Saml2Authentication> delegate =
+    //         OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+
+    //     return (responseToken) -> {
+    //         Saml2Authentication authentication = delegate.convert(responseToken);
+    //         principal = (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
+    //         if (principal != null) {
+    //             System.out.println("--------Chioke: principal: " + principal + "---------");
+    //             groups = principal.getAttribute("groups");
+    //         }
+    //         authorities = new HashSet<>();
+
+    //         if (groups != null) {
+    //             groups.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
+    //         } else {
+    //             // if groups is not preset, try Auth0 attribute name
+    //             groups = principal.getAttribute("http://schemas.auth0.com/roles");
+    //             authorities.addAll(authentication.getAuthorities());
+    //         }
+    //         return new Saml2Authentication(principal, authentication.getSaml2Response(), authorities);
+    //     };
+    // }
+
+    private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> groupsConverter() {
+		System.out.println("--------Chioke: beginning of groupsConverter---------");
         Converter<ResponseToken, Saml2Authentication> delegate =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+		
+		System.out.println("--------Chioke: delegate created---------");
 
-        return (responseToken) -> {
+		// Getting the token from the SAML response.
+		Converter<ResponseToken, Saml2Authentication> returnToken;
+		returnToken = (responseToken) -> {
             Saml2Authentication authentication = delegate.convert(responseToken);
-            Saml2AuthenticatedPrincipal principal = (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
-            List<String> groups = principal.getAttribute("groups");
-            Set<GrantedAuthority> authorities = new HashSet<>();
+			
+			if(authentication != null) {
+				System.out.println("--------Chioke: authentication: " + authentication + "---------");
+				principal = (Saml2AuthenticatedPrincipal) authentication.getPrincipal();
+				if (principal != null) {
+					System.out.println("--------Chioke: principal: " + principal + "---------");
+					groups = principal.getAttribute("groups");
+				}
+				authorities = new HashSet<>();
 
-            if (groups != null) {
-                groups.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
-            } else {
-                // if groups is not preset, try Auth0 attribute name
-                groups = principal.getAttribute("http://schemas.auth0.com/roles");
-                authorities.addAll(authentication.getAuthorities());
-            }
-            return new Saml2Authentication(principal, authentication.getSaml2Response(), authorities);
+				if (groups != null) {
+					groups.stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
+				} else {
+					// if groups is not preset, try Auth0 attribute name
+					groups = principal.getAttribute("http://schemas.auth0.com/roles");
+					// groups = principal.getAttribute("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/groups");
+					// groups = principal.getAttribute("http://schemas.microsoft.com/ws/2008/06/identity/claims/groups");
+					authorities.addAll(authentication.getAuthorities());
+				}
+				if (authorities != null) System.out.println("--------Chioke: authorities: " + authorities.toString() + "---------");
+				return new Saml2Authentication(principal, authentication.getSaml2Response(), authorities);
+			}
+			System.out.println("--------Chioke: authentication was null?---------");
+            return new Saml2Authentication(null, null, null);
         };
+        if (principal != null) System.out.println("--------Chioke: principal found: " + principal.toString() + "---------");
+		if (groups != null) System.out.println("--------Chioke: groups found: " + groups.toString() + "---------");
+		System.out.println("--------Chioke: returnToken created: " + returnToken.toString() + "---------");
+
+		System.out.println("--------Chioke: end of groupsConverter---------");
+		return returnToken;
     }
 }
