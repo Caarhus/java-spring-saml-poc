@@ -38,7 +38,6 @@ public class SecurityConfiguration {
     }
 
     private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> groupsConverter() {
-
         Converter<ResponseToken, Saml2Authentication> delegate =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
