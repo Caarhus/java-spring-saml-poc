@@ -107,4 +107,3 @@ Please post any questions as comments on the [blog post][blog], visit the [Okta 
 Apache 2.0, see [LICENSE](LICENSE).
 
 [blog]: https://developer.okta.com/blog/2022/08/05/spring-boot-saml
-
