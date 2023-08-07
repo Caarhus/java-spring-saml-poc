@@ -1,6 +1,6 @@
 # java-spring-saml-poc
 
-A Spring Boot example app that shows how to implement single sign-on (SSO) with Spring Security's SAML and Okta.
+A Spring Boot example app that shows how to implement single sign-on (SSO) with Spring Security's SAML and Okta. Ensure you're running Java17 to successfully run this project.
 
 Please read [Get Started with Spring Boot, SAML, and Okta][blog] to see how this app was created.
 
